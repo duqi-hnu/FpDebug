@@ -1,12 +1,13 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 BASE=$(pwd)
 cd gmp
+rm -rf gmp-5.0.1
 tar -jxvf gmp-5.0.1.tar.bz2
 cd gmp-5.0.1
 patch -p1 -i ../gmp-5.0.1.patch
 ./configure --prefix="${BASE}"/gmp/gmp-5.0.1/install
-make install
+make -j"$(nproc)" install
 # running 'make check' would fail because of the patch
 

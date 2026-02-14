@@ -262,23 +262,23 @@ static void opToStr(IROp op) {
       case Iop_ReinterpF32asI32: storeOpStr("ReinterpF32asI32"); return;
       case Iop_ReinterpI32asF32: storeOpStr("ReinterpI32asF32"); return;
 
-      case Iop_I32UtoFx4: storeOpStr("I32UtoFx4"); return;
-      case Iop_I32StoFx4: storeOpStr("I32StoFx4"); return;
+      case Iop_I32UtoF32x4_DEP: storeOpStr("I32UtoFx4"); return;
+      case Iop_I32StoF32x4_DEP: storeOpStr("I32StoFx4"); return;
 
       case Iop_F32toF16x4: storeOpStr("F32toF16x4"); return;
       case Iop_F16toF32x4: storeOpStr("F16toF32x4"); return;
 
-      case Iop_QFtoI32Ux4_RZ: storeOpStr("QFtoI32Ux4_RZ"); return;
-      case Iop_QFtoI32Sx4_RZ: storeOpStr("QFtoI32Sx4_RZ"); return;
+      case Iop_QF32toI32Ux4_RZ: storeOpStr("QFtoI32Ux4_RZ"); return;
+      case Iop_QF32toI32Sx4_RZ: storeOpStr("QFtoI32Sx4_RZ"); return;
 
-      case Iop_FtoI32Ux4_RZ: storeOpStr("FtoI32Ux4_RZ"); return;
-      case Iop_FtoI32Sx4_RZ: storeOpStr("FtoI32Sx4_RZ"); return;
+      case Iop_F32toI32Ux4_RZ: storeOpStr("FtoI32Ux4_RZ"); return;
+      case Iop_F32toI32Sx4_RZ: storeOpStr("FtoI32Sx4_RZ"); return;
 
-      case Iop_I32UtoFx2: storeOpStr("I32UtoFx2"); return;
-      case Iop_I32StoFx2: storeOpStr("I32StoFx2"); return;
+      case Iop_I32UtoF32x2_DEP: storeOpStr("I32UtoFx2"); return;
+      case Iop_I32StoF32x2_DEP: storeOpStr("I32StoFx2"); return;
 
-      case Iop_FtoI32Ux2_RZ: storeOpStr("FtoI32Ux2_RZ"); return;
-      case Iop_FtoI32Sx2_RZ: storeOpStr("FtoI32Sx2_RZ"); return;
+      case Iop_F32toI32Ux2_RZ: storeOpStr("FtoI32Ux2_RZ"); return;
+      case Iop_F32toI32Sx2_RZ: storeOpStr("FtoI32Sx2_RZ"); return;
 
       case Iop_RoundF32x4_RM: storeOpStr("RoundF32x4_RM"); return;
       case Iop_RoundF32x4_RP: storeOpStr("RoundF32x4_RP"); return;
@@ -703,7 +703,7 @@ static void opToStr(IROp op) {
       case Iop_Fixed32UToF32x2_RN: storeOpStr("Fixed32UToF32x2_RN"); return;
       case Iop_Fixed32SToF32x2_RN: storeOpStr("Fixed32SToF32x2_RN"); return;
 
-      default: vpanic("ppIROp(1)");
+      default: VG_(tool_panic)("ppIROp(1)");
    }
 
    HChar* str2 = VG_(malloc)("opToStr", sizeof(HChar) * (VG_(strlen)(str) + 2 + 1));

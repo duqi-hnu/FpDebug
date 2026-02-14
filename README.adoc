@@ -38,7 +38,9 @@ sudo docker run -it fpdebug /bin/bash
 
 == Build from source
 
-NOTE: Only 64bit systems are supported.
+NOTE: Only 64bit x86_64 and ARM64 systems are supported.
+NOTE: The build uses Valgrind 3.22.0 for modern host compatibility.
+NOTE: CI smoke tests run on both x86_64 and ARM64 runners (`.github/workflows/fpdebug-smoke.yml`).
 
 The following installation instructions are for Ubuntu 16.10 (64bit).
 The instructions should be similar for most other Linux systems.
@@ -50,6 +52,8 @@ The instructions should be similar for most other Linux systems.
 sudo apt-get install git
 # m4 is a dependency of GMP
 sudo apt-get install m4
+# curl is used by install_valgrind.sh to fetch Valgrind if missing
+sudo apt-get install curl
 # libc6-dbg is required for Valgrind (otherwise it fails at runtime)
 sudo apt-get install libc6-dbg
 ----
@@ -99,7 +103,7 @@ gcc test_1.c -O0 -g -o test_1.out
 ----
 ==15351== FpDebug-0.2, Floating-point arithmetic debugger
 ==15351== Copyright (C) 2010-2017 by Florian Benz.
-==15351== Using Valgrind-3.12.0 and LibVEX; rerun with -h for copyright info
+==15351== Using Valgrind-3.22.0 and LibVEX; rerun with -h for copyright info
 ==15351== Command: valgrind/fpdebug/examples/test_1.out
 ==15351== 
 ==15351== precision=120

@@ -284,7 +284,7 @@ static Bool ignoreFile(const HChar* desc) {
 }
 
 static Bool isInLibrary(Addr64 addr) {
-	DebugInfo* dinfo = VG_(find_DebugInfo)((Addr)addr);
+	DebugInfo* dinfo = VG_(find_DebugInfo)(VG_(current_DiEpoch)(), (Addr)addr);
 	if (!dinfo) return False; /* be save if not sure */
 
 	const HChar* soname = VG_(DebugInfo_get_soname)(dinfo);
@@ -2490,7 +2490,7 @@ static void writeOriginGraph(Int file, Addr oldAddr, Addr origin, Int arg, Int l
 		cycle = True;
 	} else {
 		/* create node */
-		const HChar* originIp = VG_(describe_IP)(origin, NULL);
+		const HChar* originIp = VG_(describe_IP)(VG_(current_DiEpoch)(), origin, NULL);
 		if (ignoreFile(originIp)) {
 			inLibrary = True;
 		}
@@ -2534,10 +2534,10 @@ static void writeOriginGraph(Int file, Addr oldAddr, Addr origin, Int arg, Int l
 		}
 
 		const HChar *originFilename;
-		VG_(get_filename)(origin, &originFilename);
+		VG_(get_filename)(VG_(current_DiEpoch)(), origin, &originFilename);
 
 		UInt linenum = -1;
-		Bool gotLine = VG_(get_linenum)(origin, &linenum);
+		Bool gotLine = VG_(get_linenum)(VG_(current_DiEpoch)(), origin, &linenum);
 		HChar linenumber[10];
 		linenumber[0] = '\0';
 		if (gotLine) {
@@ -2592,21 +2592,21 @@ static void writeOriginGraph(Int file, Addr oldAddr, Addr origin, Int arg, Int l
 			if (red > 120) red = 120;
 			Int green = red + 100;
 
-			const HChar* arg1Ip = VG_(describe_IP)(mv->arg1, NULL);
+			const HChar* arg1Ip = VG_(describe_IP)(VG_(current_DiEpoch)(), mv->arg1, NULL);
 			if (!inLibrary || !ignoreFile(arg1Ip)) {
 				writeOriginGraph(file, origin, mv->arg1, 1, ++level, (leftErrGreater ? red : green), careVisited);
 			}
-			const HChar* arg2Ip = VG_(describe_IP)(mv->arg2, NULL);
+			const HChar* arg2Ip = VG_(describe_IP)(VG_(current_DiEpoch)(), mv->arg2, NULL);
 			if (!inLibrary || !ignoreFile(arg2Ip)) {
 				writeOriginGraph(file, origin, mv->arg2, 2, level, (leftErrGreater ? green : red), careVisited);
 			}
 		} else if (mv->arg1 != 0) {
-			const HChar* arg1Ip = VG_(describe_IP)(mv->arg1, NULL);
+			const HChar* arg1Ip = VG_(describe_IP)(VG_(current_DiEpoch)(), mv->arg1, NULL);
 			if (!inLibrary || !ignoreFile(arg1Ip)) {
 				writeOriginGraph(file, origin, mv->arg1, 1, ++level, 1, careVisited);
 			}
 		} else if (mv->arg2 != 0) {
-			const HChar* arg2Ip = VG_(describe_IP)(mv->arg2, NULL);
+			const HChar* arg2Ip = VG_(describe_IP)(VG_(current_DiEpoch)(), mv->arg2, NULL);
 			if (!inLibrary || !ignoreFile(arg2Ip)) {
 				writeOriginGraph(file, origin, mv->arg2, 2, ++level, 1, careVisited);
 			}
@@ -2630,7 +2630,7 @@ static Bool dumpGraph(HChar* fileName, ULong addr, Bool conditional, Bool careVi
 			}
 		}
 
-		const HChar* originIp = VG_(describe_IP)(svalue->origin, NULL);
+		const HChar* originIp = VG_(describe_IP)(VG_(current_DiEpoch)(), svalue->origin, NULL);
 		if (ignoreFile(originIp)) {
 			return False;
 		}
@@ -2723,11 +2723,11 @@ static void printError(Char* varName, ULong addr, Bool conditional) {
 		VG_(umsg)("(%s) %s RELATIVE ERROR:   %s\n", typeName, varName, mpfrBuf);
 		VG_(umsg)("(%s) %s CANCELED BITS:     %lld\n", typeName, varName, svalue->canceled);
 
-		const HChar* lastOperation = VG_(describe_IP)(svalue->origin, NULL);
+		const HChar* lastOperation = VG_(describe_IP)(VG_(current_DiEpoch)(), svalue->origin, NULL);
 		VG_(umsg)("(%s) %s Last operation: %s\n", typeName, varName, lastOperation);
 
 		if (svalue->canceled > 0 && svalue->cancelOrigin > 0) {
-			const HChar* cancellationOrigin = VG_(describe_IP)(svalue->cancelOrigin, NULL);
+			const HChar* cancellationOrigin = VG_(describe_IP)(VG_(current_DiEpoch)(), svalue->cancelOrigin, NULL);
 			VG_(umsg)("(%s) %s Cancellation origin: %s\n", typeName, varName, cancellationOrigin);
 		}
 
@@ -2894,12 +2894,12 @@ static void writeShadowValue(Int file, ShadowValue* svalue, Int num) {
 	my_fwrite(file, (void*)formatBuf, VG_(strlen)(formatBuf));
 
 	if (svalue->canceled > 0 && svalue->cancelOrigin > 0) {
-		const HChar* cancellationOrigin = VG_(describe_IP)(svalue->cancelOrigin, NULL);
+		const HChar* cancellationOrigin = VG_(describe_IP)(VG_(current_DiEpoch)(), svalue->cancelOrigin, NULL);
 		VG_(sprintf)(formatBuf, "    origin of maximum cancellation: %s\n", cancellationOrigin);
 		my_fwrite(file, (void*)formatBuf, VG_(strlen)(formatBuf));
 	}
 
-	const HChar* lastOperation = VG_(describe_IP)(svalue->origin, NULL);
+	const HChar* lastOperation = VG_(describe_IP)(VG_(current_DiEpoch)(), svalue->origin, NULL);
 	VG_(sprintf)(formatBuf, "    last operation: %s\n", lastOperation);
 	my_fwrite(file, (void*)formatBuf, VG_(strlen)(formatBuf));
 	VG_(sprintf)(formatBuf, "    operation count (max path): %'lu\n", svalue->opCount);
@@ -2965,7 +2965,7 @@ static void writeMemorySpecial(ShadowValue** memory, UInt n_memory) {
 			specialFps++;
 
 			if (clo_ignoreLibraries) {
-				const HChar* originIp = VG_(describe_IP)(memory[i]->origin, NULL);
+				const HChar* originIp = VG_(describe_IP)(VG_(current_DiEpoch)(), memory[i]->origin, NULL);
 				if (ignoreFile(originIp)) {
 					skippedLibrary++;
 					continue;
@@ -3034,7 +3034,7 @@ static void writeMemoryCanceled(ShadowValue** memory, UInt n_memory) {
 			fpsWithError++;
 
 			if (clo_ignoreLibraries) {
-				const HChar* originIp = VG_(describe_IP)(memory[i]->origin, NULL);
+				const HChar* originIp = VG_(describe_IP)(VG_(current_DiEpoch)(), memory[i]->origin, NULL);
 				if (ignoreFile(originIp)) {
 					skippedLibrary++;
 					continue;
@@ -3116,7 +3116,7 @@ static void writeMemoryRelError(ShadowValue** memory, UInt n_memory) {
 				fpsWithError++;
 
 				if (clo_ignoreLibraries) {
-					const HChar* originIp = VG_(describe_IP)(memory[i]->origin, NULL);
+					const HChar* originIp = VG_(describe_IP)(VG_(current_DiEpoch)(), memory[i]->origin, NULL);
 					if (ignoreFile(originIp)) {
 						skippedLibrary++;
 						continue;
@@ -3253,7 +3253,7 @@ static void writeMeanValues(HChar* fname, Int (*cmpFunc) (const void*, const voi
 			continue;
 		}
 
-		const HChar* originIp = VG_(describe_IP)(values[i]->key, NULL);
+		const HChar* originIp = VG_(describe_IP)(VG_(current_DiEpoch)(), values[i]->key, NULL);
 		if (ignoreFile(originIp)) {
 			skippedLibrary++;
 			continue;
