@@ -69,6 +69,15 @@
 
 #include "opToString.c"
 
+/* Static Valgrind tool linkage on aarch64 may not provide glibc getauxval. */
+#if defined(VGA_arm64) && defined(VGO_linux)
+__attribute__((weak))
+unsigned long __getauxval(unsigned long type) {
+	(void)type;
+	return 0;
+}
+#endif
+
 
 #define mkU32(_n)                			IRExpr_Const(IRConst_U32(_n))
 #define mkU64(_n)                			IRExpr_Const(IRConst_U64(_n))
