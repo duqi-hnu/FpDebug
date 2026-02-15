@@ -82,6 +82,32 @@ git clone git@github.com:fbenz/FpDebug.git
 ./install_valgrind.sh
 ----
 
+=== ARM64 migration notes (for maintainers)
+
+Key compatibility points:
+
+* Keep Valgrind at `3.22.0` (older versions are not reliable on modern hosts and miss required APIs/instruction support).
+* FpDebug DebugInfo calls must use `DiEpoch` (for example via `VG_(current_DiEpoch)()` in `fd_main.c`).
+* Install tool binaries to `$(pkglibexecdir)` (not `$(pkglibdir)`) in `Makefile_template.in`.
+* Keep legacy GMP/MPFR builds explicit about target triplet (`--build=aarch64-unknown-linux-gnu` on ARM64).
+* For static Valgrind tool linking on ARM64:
+** build GMP/MPFR with stack protector disabled (`-fno-stack-protector`);
+** disable outline atomics where needed (`-mno-outline-atomics`);
+** keep the ARM64 `__getauxval` fallback in `fd_main.c`.
+* Keep depfile handling compatible with newer automake behavior (`-include` usage and creating `fpdebug/.deps` before build).
+* Use `.github/workflows/fpdebug-smoke.yml` as the baseline regression check (must pass on both `ubuntu-24.04` and `ubuntu-24.04-arm`).
+
+Common ARM64 failure patterns and fixes:
+
+* `configfsf.guess: unable to guess system type` in GMP configure:
+  use explicit `--build=aarch64-unknown-linux-gnu`.
+* `undefined reference to __stack_chk_guard/__stack_chk_fail` during static link:
+  ensure GMP/MPFR are built with `-fno-stack-protector`.
+* `undefined reference to __getauxval` from `libgcc.a(lse-init.o)` when linking `fpdebug-arm64-linux`:
+  keep `-mno-outline-atomics` and the ARM64 `__getauxval` fallback.
+* `failed to start tool 'fpdebug' ... No such file or directory` after install:
+  verify tool install path is `libexec/valgrind` (`pkglibexecdir`).
+
 == Running FpDebug
 
 [source,bash]
