@@ -949,8 +949,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fpdebug_@VGCONF_ARCH_PRI@_@VGCONF_OS@-fd_main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fpdebug_@VGCONF_ARCH_SEC@_@VGCONF_OS@-fd_main.Po@am__quote@
+@AMDEP_TRUE@-include @am__quote@./$(DEPDIR)/fpdebug_@VGCONF_ARCH_PRI@_@VGCONF_OS@-fd_main.Po@am__quote@
+@AMDEP_TRUE@-include @am__quote@./$(DEPDIR)/fpdebug_@VGCONF_ARCH_SEC@_@VGCONF_OS@-fd_main.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\

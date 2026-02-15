@@ -37,5 +37,8 @@ if ! grep -Eq '(^|[[:space:]])fpdebug([[:space:]]|$)' Makefile.in; then
 fi
 
 ./configure --prefix="${BASE}"/valgrind/install
+# The legacy FpDebug Makefile template does not auto-create DEPDIR
+# with newer Automake-generated top-level rules.
+mkdir -p fpdebug/.deps
 make -j"$(nproc)" install
 
