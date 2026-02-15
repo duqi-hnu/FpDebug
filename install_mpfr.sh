@@ -5,9 +5,14 @@ set -euo pipefail
 # install_gmp.sh installs a patched GMP version there.
 BASE=$(pwd)
 BUILD_ARCH="$(uname -m)"
+EXTRA_CFLAGS=""
 case "${BUILD_ARCH}" in
 	x86_64|amd64) BUILD_TRIPLET="x86_64-unknown-linux-gnu" ;;
-	aarch64|arm64) BUILD_TRIPLET="aarch64-unknown-linux-gnu" ;;
+	aarch64|arm64)
+		BUILD_TRIPLET="aarch64-unknown-linux-gnu"
+		# Keep MPFR/GMP static linkage independent of libgcc LSE runtime probing.
+		EXTRA_CFLAGS="-mno-outline-atomics"
+		;;
 	*) BUILD_TRIPLET="${BUILD_ARCH}-unknown-linux-gnu" ;;
 esac
 
@@ -19,7 +24,11 @@ cp ../valgrind_additions.c .
 patch -p1 -i ../mpfr-3.0.0.patch
 # MPFR 3.0.0 + this patch requires -fcommon on modern GCC/Clang,
 # and stack protector must be disabled for static Valgrind tool linkage.
-./configure CFLAGS="-fcommon -fno-stack-protector" --build="${BUILD_TRIPLET}" --prefix="${BASE}"/mpfr/mpfr-3.0.0/install --with-gmp="${BASE}"/gmp/gmp-5.0.1/install
+MPFR_CFLAGS="-fcommon -fno-stack-protector"
+if [ -n "${EXTRA_CFLAGS}" ]; then
+	MPFR_CFLAGS="${MPFR_CFLAGS} ${EXTRA_CFLAGS}"
+fi
+./configure CFLAGS="${MPFR_CFLAGS}" --build="${BUILD_TRIPLET}" --prefix="${BASE}"/mpfr/mpfr-3.0.0/install --with-gmp="${BASE}"/gmp/gmp-5.0.1/install
 make -j"$(nproc)" install
 # running 'make check' would fail because of the patch
 
