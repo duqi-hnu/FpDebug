@@ -55,5 +55,8 @@ jobs:
       - name: Print smoke log on failure
         if: failure()
         run: |
-          set +e
-          sed -n '1,200p' /tmp/fpdebug.log
+          if [ -f /tmp/fpdebug.log ]; then
+            sed -n '1,200p' /tmp/fpdebug.log
+          else
+            echo "No smoke log generated."
+          fi
