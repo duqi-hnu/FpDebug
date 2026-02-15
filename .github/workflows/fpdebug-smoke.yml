@@ -1,0 +1,62 @@
+name: fpdebug-smoke
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-smoke:
+    name: build-and-smoke (${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y build-essential bison flex m4 libc6-dbg perl patch curl
+
+      - name: Build patched GMP and MPFR
+        run: |
+          set -euo pipefail
+          ./install_gmp.sh
+          ./install_mpfr.sh
+
+      - name: Build Valgrind with FpDebug
+        run: |
+          set -euo pipefail
+          ./install_valgrind.sh
+
+      - name: Run FpDebug smoke test
+        run: |
+          set -euo pipefail
+          gcc valgrind/fpdebug/examples/test_1.c -O0 -g -o /tmp/test_1.out
+          valgrind_lib_dir="$(pwd)/valgrind/install/libexec/valgrind"
+          if [ ! -d "${valgrind_lib_dir}" ]; then
+            valgrind_lib_dir="$(pwd)/valgrind/install/lib/valgrind"
+          fi
+          VALGRIND_LIB="${valgrind_lib_dir}" ./valgrind/install/bin/valgrind --tool=fpdebug /tmp/test_1.out > /tmp/fpdebug.log 2>&1
+          grep -q "FpDebug-0.2" /tmp/fpdebug.log
+
+      - name: Print smoke log on failure
+        if: failure()
+        run: |
+          if [ -f /tmp/fpdebug.log ]; then
+            sed -n '1,200p' /tmp/fpdebug.log
+          else
+            echo "No smoke log generated."
+          fi
